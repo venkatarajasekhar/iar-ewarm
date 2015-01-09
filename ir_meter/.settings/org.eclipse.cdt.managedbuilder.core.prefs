@@ -1,0 +1,17 @@
+eclipse.preferences.version=1
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/C_INCLUDE/delimiter=;
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/C_INCLUDE/operation=remove
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/append=true
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/appendContributed=true
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/C_INCLUDE/delimiter=;
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/C_INCLUDE/operation=remove
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/append=true
+environment/buildEnvironmentInclude/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/appendContributed=true
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/LIBRARY_PATH/delimiter=;
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/LIBRARY_PATH/operation=remove
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/append=true
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.debug.v5.4.0.986259208/appendContributed=true
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/LIBRARY_PATH/delimiter=;
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/LIBRARY_PATH/operation=remove
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/append=true
+environment/buildEnvironmentLibrary/iar.arm.toolchain.project.exe.configuration.release.v5.4.0.1125040337/appendContributed=true
