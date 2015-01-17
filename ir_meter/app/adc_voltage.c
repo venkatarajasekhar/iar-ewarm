@@ -3,8 +3,10 @@
 #include "stm32f10x_gpio.h"
 #include "adc_voltage.h"
 
-const ADC_sample default_sample = {
-		0xD99, // 95
+uint8_t ADC_Calibration_Value;
+
+const ADC_sample default_sample =
+{ 0xD99, // 95
 		0xD46, // 90
 		0xD45, // 85
 		0xD41, // 80
@@ -24,9 +26,10 @@ const ADC_sample default_sample = {
 		0xCCF, // 10
 		0xCBA, // 05
 		0xCAC  // 00
-};
+		};
 
-void ADC_init(void) {
+void ADC_init(void)
+{
 	GPIO_InitTypeDef GPIO_InitStructure;
 	ADC_InitTypeDef ADC_InitStructure;
 
@@ -62,11 +65,12 @@ void ADC_init(void) {
 	ADC_TempSensorVrefintCmd(ENABLE);
 	//ADC1 channel8 configuration
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime_41Cycles5);
-	//Enable ADC1
-	ADC_Cmd(ADC1, ENABLE);
+
+	ADC_Calibration_Value = *((uint8_t *) 0x0801FC00);
 }
 
-uint16_t ADC_get(void) {
+uint16_t ADC_get(void)
+{
 	//clear EOC flag
 	ADC_ClearFlag(ADC1, ADC_FLAG_EOC);
 	//Start ADC1 Software Conversion
@@ -78,70 +82,113 @@ uint16_t ADC_get(void) {
 		return 0;
 }
 
-void adc2ascii(uint16_t adc, char *ascii, const ADC_sample *sample) {
-	if (sample->b95 <= adc) {
+void adc2ascii(uint16_t adc, char *ascii, const ADC_sample *sample)
+{
+	if (sample->b95 <= adc)
+	{
 		ascii[0] = 'F';
 		ascii[1] = 'U';
-	} else if (sample->b90 < adc && adc <= sample->b95) {
+	}
+	else if (sample->b90 < adc && adc <= sample->b95)
+	{
 		ascii[0] = '9';
 		ascii[1] = '5';
-	} else if (sample->b85 < adc && adc <= sample->b90) {
+	}
+	else if (sample->b85 < adc && adc <= sample->b90)
+	{
 		ascii[0] = '9';
 		ascii[1] = '0';
-	} else if (sample->b80 < adc && adc <= sample->b85) {
+	}
+	else if (sample->b80 < adc && adc <= sample->b85)
+	{
 		ascii[0] = '8';
 		ascii[1] = '5';
-	} else if (sample->b75 < adc && adc <= sample->b80) {
+	}
+	else if (sample->b75 < adc && adc <= sample->b80)
+	{
 		ascii[0] = '8';
 		ascii[1] = '0';
-	} else if (sample->b70 < adc && adc <= sample->b75) {
+	}
+	else if (sample->b70 < adc && adc <= sample->b75)
+	{
 		ascii[0] = '7';
 		ascii[1] = '5';
-	} else if (sample->b65 < adc && adc <= sample->b70) {
+	}
+	else if (sample->b65 < adc && adc <= sample->b70)
+	{
 		ascii[0] = '7';
 		ascii[1] = '0';
-	} else if (sample->b60 < adc && adc <= sample->b65) {
+	}
+	else if (sample->b60 < adc && adc <= sample->b65)
+	{
 		ascii[0] = '6';
 		ascii[1] = '5';
-	} else if (sample->b55 < adc && adc <= sample->b60) {
+	}
+	else if (sample->b55 < adc && adc <= sample->b60)
+	{
 		ascii[0] = '6';
 		ascii[1] = '0';
-	} else if (sample->b50 < adc && adc <= sample->b55) {
+	}
+	else if (sample->b50 < adc && adc <= sample->b55)
+	{
 		ascii[0] = '5';
 		ascii[1] = '5';
-	} else if (sample->b45 < adc && adc <= sample->b50) {
+	}
+	else if (sample->b45 < adc && adc <= sample->b50)
+	{
 		ascii[0] = '5';
 		ascii[1] = '0';
-	} else if (sample->b40 < adc && adc <= sample->b45) {
+	}
+	else if (sample->b40 < adc && adc <= sample->b45)
+	{
 		ascii[0] = '4';
 		ascii[1] = '5';
-	} else if (sample->b35 < adc && adc <= sample->b40) {
+	}
+	else if (sample->b35 < adc && adc <= sample->b40)
+	{
 		ascii[0] = '4';
 		ascii[1] = '0';
-	} else if (sample->b30 < adc && adc <= sample->b35) {
+	}
+	else if (sample->b30 < adc && adc <= sample->b35)
+	{
 		ascii[0] = '3';
 		ascii[1] = '5';
-	} else if (sample->b25 < adc && adc <= sample->b30) {
+	}
+	else if (sample->b25 < adc && adc <= sample->b30)
+	{
 		ascii[0] = '3';
 		ascii[1] = '0';
-	} else if (sample->b20 < adc && adc <= sample->b25) {
+	}
+	else if (sample->b20 < adc && adc <= sample->b25)
+	{
 		ascii[0] = '2';
 		ascii[1] = '5';
-	} else if (sample->b15 < adc && adc <= sample->b20) {
+	}
+	else if (sample->b15 < adc && adc <= sample->b20)
+	{
 		ascii[0] = '2';
 		ascii[1] = '0';
-	} else if (sample->b10 < adc && adc <= sample->b15) {
+	}
+	else if (sample->b10 < adc && adc <= sample->b15)
+	{
 		ascii[0] = '1';
 		ascii[1] = '5';
-	} else if (sample->b05 < adc && adc <= sample->b10) {
+	}
+	else if (sample->b05 < adc && adc <= sample->b10)
+	{
 		ascii[0] = '1';
 		ascii[1] = '0';
-	} else if (sample->b00 < adc && adc <= sample->b05) {
+	}
+	else if (sample->b00 < adc && adc <= sample->b05)
+	{
 		ascii[0] = '0';
 		ascii[1] = '5';
-	} else if (adc && adc <= sample->b00) {
+	}
+	else if (adc && adc <= sample->b00)
+	{
 		ascii[0] = '0';
 		ascii[1] = '0';
-	} else
+	}
+	else
 		;
 }

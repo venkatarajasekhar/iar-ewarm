@@ -672,6 +672,7 @@ int main(void)
 			segment.display = SEG_DISPLAY_OFF;
 			seg_flush(&segment, &seg_cfg);
 
+			ADC_Cmd(ADC1, ENABLE);
 			GPIO_SetBits(GPIOB, GPIO_Pin_0);
 
 			//Enable ADC1 reset calibration register
@@ -701,15 +702,17 @@ int main(void)
 				}
 			}
 
-			GPIO_ResetBits(GPIOB, GPIO_Pin_0);
-
 			adc_value /= ADC_TIMES;
+			adc_value = adc_value * (2873 + ADC_Calibration_Value) / 3000;
 			if (adc_sum != 0)
 				adc_sum = (adc_sum + adc_value) / 2;
 			else
 				adc_sum = adc_value;
 
-			if (adc_sum < default_sample.b40)
+			GPIO_ResetBits(GPIOB, GPIO_Pin_0);
+			ADC_Cmd(ADC1, DISABLE);
+
+			if (adc_sum < default_sample.b00)
 			{
 				segment.display = SEG_DISPLAY_ON;
 				segment.dig8[0] = ascii2seg_default('L');
@@ -1270,9 +1273,46 @@ void USB_com(void)
 	}
 	/**************************************************************************/
 	else if (Out_Buffer[1] == 0x02 && Out_Buffer[2] == 0x14
+			&& Out_Buffer[4] == 0xa5)
+	{
+		FLASH_Unlock();
+		while (FLASH_ErasePage(0x0801FC00) != FLASH_COMPLETE)
+			;
+		while (FLASH_ProgramHalfWord(0x0801FC00, Out_Buffer[3])
+				!= FLASH_COMPLETE)
+			;
+
+		ADC_Calibration_Value = Out_Buffer[3];
+
+		In_Buffer[0] = 'S';
+		In_Buffer[1] = 'E';
+		In_Buffer[2] = 'T';
+		In_Buffer[3] = 'O';
+		In_Buffer[4] = 'K';
+
+		ustat = usuccess;
+		ustat_cd = USTAT_KEEP;
+
+		UserToPMABufferCopy(In_Buffer, GetEPTxAddr(ENDP1), 64);
+		SetEPTxCount(ENDP1, 64);
+		SetEPTxValid(ENDP1);
+	}
+	else if (Out_Buffer[1] == 0x02 && Out_Buffer[2] == 0x15
 			&& Out_Buffer[3] == 0xa5)
 	{
 
+		In_Buffer[0] = 0x5a;
+		In_Buffer[1] = 0x02;
+		In_Buffer[2] = 0x15;
+		In_Buffer[3] = ADC_Calibration_Value;
+		In_Buffer[4] = 0xa5;
+
+		ustat = usuccess;
+		ustat_cd = USTAT_KEEP;
+
+		UserToPMABufferCopy(In_Buffer, GetEPTxAddr(ENDP1), 64);
+		SetEPTxCount(ENDP1, 64);
+		SetEPTxValid(ENDP1);
 	}
 	/**************************************************************************/
 	else
