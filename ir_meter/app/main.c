@@ -144,6 +144,7 @@ void
 USB_com(void);   //USB通信
 void
 uart_com(void);    //UART通信
+void adc_refresh(void);
 
 //------------------------------------------------------------------------------
 // FE   FE   FE   FE   68   AA   AA   AA   AA   AA   AA   68   11   04   33   34   34   35  B1   16
@@ -460,6 +461,7 @@ int main(void)
 //	LED_L();
 	time_scan_flag = 1;         //采集过了，重新计算唤醒次数。
 	delay_time = 0;
+	adc_refresh();
 	while (1)
 	{
 		if (shutdown_en == 1)
@@ -569,6 +571,10 @@ int main(void)
 			adc_en = 0;
 			wakeup_flag = 1;
 
+			adc_refresh();
+			ADC_Cmd(ADC1, ENABLE);
+			GPIO_SetBits(GPIOB, GPIO_Pin_0);
+
 			adc2ascii_default(adc_sum, adc_ascii);
 
 			segment.display = SEG_DISPLAY_ON;
@@ -667,78 +673,9 @@ int main(void)
 			}
 			//===================
 			spi_io_enable(0);
-			WWDG_WEI();
-			/******************************************************************/
 			segment.display = SEG_DISPLAY_OFF;
 			seg_flush(&segment, &seg_cfg);
-
-			ADC_Cmd(ADC1, ENABLE);
-			GPIO_SetBits(GPIOB, GPIO_Pin_0);
-
-			//Enable ADC1 reset calibration register
-			ADC_ResetCalibration(ADC1);
-			//Check the end of ADC1 reset calibration register
-			while (ADC_GetResetCalibrationStatus(ADC1) != RESET)
-				;
-			//Start ADC1 calibration
-			ADC_StartCalibration(ADC1);
-			//Check the end of ADC1 calibration
-			while (ADC_GetCalibrationStatus(ADC1) != RESET)
-				;
-
-			adc_value = 0;
-			for (int i = 0; i < ADC_TIMES;)
-			{
-				delay_time = 0;
-				while (delay_time < 50)
-					if (delay_time != 0)
-						WWDG_WEI();
-
-				adc_tmp = ADC_get();
-				if (adc_tmp > 0xC00)
-				{
-					adc_value += adc_tmp;
-					i++;
-				}
-			}
-
-			adc_value /= ADC_TIMES;
-			adc_value = adc_value * (2873 + ADC_Calibration_Value) / 3000;
-			if (adc_sum != 0)
-				adc_sum = (adc_sum + adc_value) / 2;
-			else
-				adc_sum = adc_value;
-
-			GPIO_ResetBits(GPIOB, GPIO_Pin_0);
-			ADC_Cmd(ADC1, DISABLE);
-
-			if (adc_sum < default_sample.b00)
-			{
-				segment.display = SEG_DISPLAY_ON;
-				segment.dig8[0] = ascii2seg_default('L');
-				segment.dig8[1] = ascii2seg_default('o');
-
-				delay_time = 0;
-				while (delay_time < 6000)
-				{
-					if (delay_time % 20 == 0)
-					{
-						WWDG_WEI();
-						seg_flush(&segment, &seg_cfg);
-					}
-				}
-
-				segment.display = SEG_DISPLAY_OFF;
-				seg_flush(&segment, &seg_cfg);
-
-				while (1)
-				{
-					SHUTDOWN()
-					;
-					WWDG_WEI();
-				}
-			}
-			/******************************************************************/
+			WWDG_WEI();
 			PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI); //进入STOP模式
 			WWDG_WEI();
 			//唤醒后HSI被选为系统时钟。采集时为了温度影响最小，应改为HSE时钟。
@@ -759,12 +696,18 @@ int main(void)
 			 }
 			 }
 			 */
+			/******************************************************************/
+			if (read_s_cont % 30 == 0)
+				if (old_time != top_time[2])
+					adc_refresh();
+			/******************************************************************/
 			if (read_s_cont == 0) //读时间
 			{
 				ds3231_io_init(1);
 				top_time[2] = iic_1_readbyte(0x01); //分
 				ds3231_io_init(0);
 				time_hex_10 = (top_time[2] >> 4) * 10 + (top_time[2] & 0x0f);
+
 				if (old_time != top_time[2]
 						&& (time_hex_10 % set_updata_time) == 0) //基于整时间隔分钟数,这里不能判断秒，有可能错过秒。
 				{
@@ -1495,3 +1438,73 @@ void assert_failed(u8* file, u32 line)
 #endif
 
 /******************* (C) COPYRIGHT 2008 STMicroelectronics *****END OF FILE****/
+
+void adc_refresh(void)
+{
+	ADC_Cmd(ADC1, ENABLE);
+	GPIO_SetBits(GPIOB, GPIO_Pin_0);
+
+	//Enable ADC1 reset calibration register
+	ADC_ResetCalibration(ADC1);
+	//Check the end of ADC1 reset calibration register
+	while (ADC_GetResetCalibrationStatus(ADC1) != RESET)
+		;
+	//Start ADC1 calibration
+	ADC_StartCalibration(ADC1);
+	//Check the end of ADC1 calibration
+	while (ADC_GetCalibrationStatus(ADC1) != RESET)
+		;
+
+	adc_value = 0;
+	for (int i = 0; i < ADC_TIMES;)
+	{
+		delay_time = 0;
+		while (delay_time < 50)
+			if (delay_time != 0)
+				WWDG_WEI();
+
+		adc_tmp = ADC_get();
+		if (adc_tmp > 0xC00)
+		{
+			adc_value += adc_tmp;
+			i++;
+		}
+	}
+
+	adc_value /= ADC_TIMES;
+	adc_value = adc_value * (2873 + ADC_Calibration_Value) / 3000;
+	if (adc_sum != 0)
+		adc_sum = (adc_sum + adc_value) / 2;
+	else
+		adc_sum = adc_value;
+
+	GPIO_ResetBits(GPIOB, GPIO_Pin_0);
+	ADC_Cmd(ADC1, DISABLE);
+
+	if (adc_sum < default_sample.b00)
+	{
+		segment.display = SEG_DISPLAY_ON;
+		segment.dig8[0] = ascii2seg_default('L');
+		segment.dig8[1] = ascii2seg_default('o');
+
+		delay_time = 0;
+		while (delay_time < 6000)
+		{
+			if (delay_time % 20 == 0)
+			{
+				WWDG_WEI();
+				seg_flush(&segment, &seg_cfg);
+			}
+		}
+
+		segment.display = SEG_DISPLAY_OFF;
+		seg_flush(&segment, &seg_cfg);
+
+		while (1)
+		{
+			SHUTDOWN()
+			;
+			WWDG_WEI();
+		}
+	}
+}
