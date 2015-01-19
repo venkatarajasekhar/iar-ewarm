@@ -1216,16 +1216,17 @@ void USB_com(void)
 	}
 	/**************************************************************************/
 	else if (Out_Buffer[1] == 0x02 && Out_Buffer[2] == 0x14
-			&& Out_Buffer[4] == 0xa5)
+			&& Out_Buffer[5] == 0xa5)
 	{
 		FLASH_Unlock();
 		while (FLASH_ErasePage(0x0801FC00) != FLASH_COMPLETE)
 			;
-		while (FLASH_ProgramHalfWord(0x0801FC00, Out_Buffer[3])
-				!= FLASH_COMPLETE)
+		while (FLASH_ProgramHalfWord(0x0801FC00,
+				Out_Buffer[3] | (Out_Buffer[4] << 8)) != FLASH_COMPLETE)
 			;
 
-		ADC_Calibration_Value = Out_Buffer[3];
+		ADC_Reference_Calibration = Out_Buffer[3];
+		ADC_Sample_Calibration = Out_Buffer[4];
 
 		In_Buffer[0] = 'S';
 		In_Buffer[1] = 'E';
@@ -1247,8 +1248,9 @@ void USB_com(void)
 		In_Buffer[0] = 0x5a;
 		In_Buffer[1] = 0x02;
 		In_Buffer[2] = 0x15;
-		In_Buffer[3] = ADC_Calibration_Value;
-		In_Buffer[4] = 0xa5;
+		In_Buffer[3] = ADC_Reference_Calibration;
+		In_Buffer[4] = ADC_Sample_Calibration;
+		In_Buffer[5] = 0xa5;
 
 		ustat = usuccess;
 		ustat_cd = USTAT_KEEP;
@@ -1472,7 +1474,8 @@ void adc_refresh(void)
 	}
 
 	adc_value /= ADC_TIMES;
-	adc_value = adc_value * (2873 + ADC_Calibration_Value) / 3000;
+	adc_value = adc_value * (2873 + ADC_Reference_Calibration)
+			/ (2873 + ADC_Sample_Calibration);
 	if (adc_sum != 0)
 		adc_sum = (adc_sum + adc_value) / 2;
 	else

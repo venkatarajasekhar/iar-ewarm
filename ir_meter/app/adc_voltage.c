@@ -4,7 +4,8 @@
 #include "adc_voltage.h"
 #include "seg.h"
 
-uint8_t ADC_Calibration_Value;
+uint8_t ADC_Reference_Calibration;
+uint8_t ADC_Sample_Calibration;
 
 /*
  const ADC_sample default_sample =
@@ -70,16 +71,17 @@ void ADC_init(void)
 	//ADC1 channel8 configuration
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime_41Cycles5);
 
-	ADC_Calibration_Value = *((uint8_t *) 0x0801FC00);
+	ADC_Reference_Calibration = *((uint16_t *) 0x0801FC00) & 0x00ff;
+	ADC_Sample_Calibration = (*((uint16_t *) 0x0801FC00) & 0xff00) >> 8;
 }
 
 uint16_t ADC_get(void)
 {
-	//clear EOC flag
+//clear EOC flag
 	ADC_ClearFlag(ADC1, ADC_FLAG_EOC);
-	//Start ADC1 Software Conversion
+//Start ADC1 Software Conversion
 	ADC_SoftwareStartConvCmd(ADC1, ENABLE);
-	//wait for conversion complete
+//wait for conversion complete
 	if (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) != RESET)
 		return ADC_GetConversionValue(ADC1);
 	else

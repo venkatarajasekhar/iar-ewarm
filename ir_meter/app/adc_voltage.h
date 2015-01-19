@@ -40,7 +40,8 @@ typedef struct {
 	uint16_t b00;
 } ADC_sample;
 */
-extern uint8_t ADC_Calibration_Value;
+extern uint8_t ADC_Reference_Calibration;
+extern uint8_t ADC_Sample_Calibration;
 /*
 extern const ADC_sample default_sample;
 */
