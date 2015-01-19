@@ -16,6 +16,7 @@
 #define ADC_POWER_GPIO_TYPE GPIOB
 #define ADC_POWER_GPIO_PIN  GPIO_Pin_1
 
+/*
 typedef struct {
 	uint16_t b95;
 	uint16_t b90;
@@ -38,17 +39,21 @@ typedef struct {
 	uint16_t b05;
 	uint16_t b00;
 } ADC_sample;
-
+*/
 extern uint8_t ADC_Calibration_Value;
+/*
 extern const ADC_sample default_sample;
-
+*/
 void ADC_init(void);
 uint16_t ADC_get(void);
+/*
 void adc2ascii(uint16_t adc, char *ascii, const ADC_sample *sample);
 
 inline void adc2ascii_default(uint16_t adc, char *ascii) {
 	adc2ascii(adc, ascii, &default_sample);
 }
+*/
+void adc2ascii(uint16_t adc, char *ascii);
 
 inline void adc_on(void) {
 	GPIO_SetBits(GPIOB, GPIO_Pin_0);

@@ -495,6 +495,7 @@ int main(void)
 			/******************************************************************/
 			USB_EN()
 			;
+			GPIO_SetBits(GPIOB, GPIO_Pin_0);
 
 			if (ustat_cd > 0)
 				ustat_cd--;
@@ -572,10 +573,10 @@ int main(void)
 			wakeup_flag = 1;
 
 			adc_refresh();
-			ADC_Cmd(ADC1, ENABLE);
+			//ADC_Cmd(ADC1, ENABLE);
 			GPIO_SetBits(GPIOB, GPIO_Pin_0);
 
-			adc2ascii_default(adc_sum, adc_ascii);
+			adc2ascii(adc_sum, adc_ascii);
 
 			segment.display = SEG_DISPLAY_ON;
 			segment.dig8[0] = ascii2seg_default(adc_ascii[0]);
@@ -698,8 +699,7 @@ int main(void)
 			 */
 			/******************************************************************/
 			if (read_s_cont % 30 == 0)
-				if (old_time != top_time[2])
-					adc_refresh();
+				adc_refresh();
 			/******************************************************************/
 			if (read_s_cont == 0) //∂¡ ±º‰
 			{
@@ -1481,7 +1481,7 @@ void adc_refresh(void)
 	GPIO_ResetBits(GPIOB, GPIO_Pin_0);
 	ADC_Cmd(ADC1, DISABLE);
 
-	if (adc_sum < default_sample.b00)
+	if (adc_sum < 0xca8)
 	{
 		segment.display = SEG_DISPLAY_ON;
 		segment.dig8[0] = ascii2seg_default('L');
